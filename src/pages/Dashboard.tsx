@@ -1,6 +1,7 @@
 import { Bell, Church, Users, Calendar, DollarSign, BookOpen, MessageCircle } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Link } from "react-router-dom";
 
 const Dashboard = () => {
   const stats = [
@@ -72,14 +73,18 @@ const Dashboard = () => {
                     <p className="font-medium">Sunday Worship</p>
                     <p className="text-sm text-muted-foreground">Tomorrow, 9:00 AM</p>
                   </div>
-                  <Button size="sm" variant="secondary">RSVP</Button>
+                  <Link to="/events">
+                    <Button size="sm" variant="secondary">RSVP</Button>
+                  </Link>
                 </div>
                 <div className="flex justify-between items-start">
                   <div>
                     <p className="font-medium">Youth Bible Study</p>
                     <p className="text-sm text-muted-foreground">Wednesday, 6:00 PM</p>
                   </div>
-                  <Button size="sm" variant="secondary">RSVP</Button>
+                  <Link to="/events">
+                    <Button size="sm" variant="secondary">RSVP</Button>
+                  </Link>
                 </div>
               </div>
             </CardContent>
@@ -100,14 +105,18 @@ const Dashboard = () => {
                     <p className="font-medium">Walking in Faith</p>
                     <p className="text-sm text-muted-foreground">Pastor James • 45 min</p>
                   </div>
-                  <Button size="sm" variant="secondary">Play</Button>
+                  <Link to="/media">
+                    <Button size="sm" variant="secondary">Play</Button>
+                  </Link>
                 </div>
                 <div className="flex justify-between items-start">
                   <div>
                     <p className="font-medium">Power of Prayer</p>
                     <p className="text-sm text-muted-foreground">Pastor Sarah • 38 min</p>
                   </div>
-                  <Button size="sm" variant="secondary">Play</Button>
+                  <Link to="/media">
+                    <Button size="sm" variant="secondary">Play</Button>
+                  </Link>
                 </div>
               </div>
             </CardContent>
@@ -128,14 +137,18 @@ const Dashboard = () => {
                     <p className="font-medium">Worship Team</p>
                     <p className="text-sm text-muted-foreground">156 members • 12 new posts</p>
                   </div>
-                  <Button size="sm" variant="secondary">View</Button>
+                  <Link to="/community">
+                    <Button size="sm" variant="secondary">View</Button>
+                  </Link>
                 </div>
                 <div className="flex justify-between items-start">
                   <div>
                     <p className="font-medium">Bible Study Circle</p>
                     <p className="text-sm text-muted-foreground">89 members • 5 new posts</p>
                   </div>
-                  <Button size="sm" variant="secondary">View</Button>
+                  <Link to="/community">
+                    <Button size="sm" variant="secondary">View</Button>
+                  </Link>
                 </div>
               </div>
             </CardContent>
