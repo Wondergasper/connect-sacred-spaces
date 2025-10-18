@@ -13,6 +13,13 @@ import Members from "./pages/Members";
 import Donations from "./pages/Donations";
 import Profile from "./pages/Profile";
 import Explore from "./pages/Explore";
+import About from "./pages/About";
+import Notifications from "./pages/Notifications";
+import Admin from "./pages/Admin";
+import Help from "./pages/Help";
+import GroupDetail from "./pages/GroupDetail";
+import Announcements from "./pages/Announcements";
+import Departments from "./pages/Departments";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -28,12 +35,19 @@ const App = () => (
           <Route path="/auth" element={<Auth />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/community" element={<Community />} />
+          <Route path="/community/groups/:id" element={<GroupDetail />} />
           <Route path="/media" element={<MediaLibrary />} />
           <Route path="/events" element={<Events />} />
           <Route path="/members" element={<Members />} />
           <Route path="/donations" element={<Donations />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/explore" element={<Explore />} />
+          <Route path="/about" element={<About />} />
+          <Route path="/notifications" element={<Notifications />} />
+          <Route path="/admin" element={<Admin />} />
+          <Route path="/help" element={<Help />} />
+          <Route path="/announcements" element={<Announcements />} />
+          <Route path="/departments" element={<Departments />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
