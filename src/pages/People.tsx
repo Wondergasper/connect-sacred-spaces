@@ -1,33 +1,41 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { Users, Search, UserPlus, MessageCircle, MapPin, Church } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Users, Search, UserPlus, UserCheck, MessageCircle, Mail, Phone, MapPin, Building2, Users2 } from "lucide-react";
 import { Link } from "react-router-dom";
 
 const People = () => {
-  const suggestions = [
-    { id: 1, name: "Emily Johnson", church: "Grace Community", location: "New York, NY", interests: ["Worship", "Youth"], mutualFriends: 5 },
-    { id: 2, name: "Michael Chen", church: "Victory Fellowship", location: "Los Angeles, CA", interests: ["Tech", "Media"], mutualFriends: 3 },
-    { id: 3, name: "Sarah Williams", church: "Harvest Chapel", location: "Chicago, IL", interests: ["Prayer", "Bible Study"], mutualFriends: 7 },
-    { id: 4, name: "David Martinez", church: "Faith Center", location: "Houston, TX", interests: ["Outreach", "Missions"], mutualFriends: 2 },
-    { id: 5, name: "Lisa Anderson", church: "Hope Church", location: "Phoenix, AZ", interests: ["Choir", "Music"], mutualFriends: 4 },
-    { id: 6, name: "James Taylor", church: "New Life Church", location: "Philadelphia, PA", interests: ["Leadership", "Teaching"], mutualFriends: 6 },
+  const [activeTab, setActiveTab] = useState("all");
+  const [searchTerm, setSearchTerm] = useState("");
+
+  // Mock people data
+  const people = [
+    { id: 1, name: "James Wilson", role: "Worship Leader", church: "Grace Community", location: "New York, NY", mutual: 3, connected: false },
+    { id: 2, name: "Maria Garcia", role: "Sunday School Teacher", church: "Victory Church", location: "Los Angeles, CA", mutual: 1, connected: true },
+    { id: 3, name: "Thomas Chen", role: "IT Department", church: "City Light Fellowship", location: "San Francisco, CA", mutual: 5, connected: false },
+    { id: 4, name: "Patricia Brown", role: "Deacon", church: "Grace Community", location: "Chicago, IL", mutual: 2, connected: false },
+    { id: 5, name: "Ahmed Hassan", role: "Community Outreach", church: "Faith Center", location: "Houston, TX", mutual: 4, connected: true },
+    { id: 6, name: "Olivia Smith", role: "Youth Leader", church: "New Hope Church", location: "Miami, FL", mutual: 3, connected: false },
+    { id: 7, name: "David Kim", role: "Pastor", church: "Grace Community", location: "Seattle, WA", mutual: 0, connected: false },
+    { id: 8, name: "Sarah Johnson", role: "Music Director", church: "Harvest Chapel", location: "Boston, MA", mutual: 2, connected: true },
   ];
 
-  const nearby = [
-    { id: 1, name: "Robert Brown", church: "Local Fellowship", distance: "2.3 miles", interests: ["Prayer"] },
-    { id: 2, name: "Jennifer Davis", church: "Community Church", distance: "3.8 miles", interests: ["Youth"] },
-    { id: 3, name: "William Wilson", church: "Grace Point", distance: "5.1 miles", interests: ["Worship"] },
-  ];
+  // Filter people based on search term
+  const filteredPeople = people.filter(person => 
+    person.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    person.church.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    person.role.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
-  const connections = [
-    { id: 1, name: "John Smith", church: "Victory Church", status: "Connected", interests: ["Bible Study", "Prayer"] },
-    { id: 2, name: "Mary Johnson", church: "Grace Community", status: "Connected", interests: ["Worship", "Music"] },
-    { id: 3, name: "Daniel Lee", church: "Faith Center", status: "Connected", interests: ["Youth", "Outreach"] },
-  ];
+  // Filter by tab
+  const displayedPeople = activeTab === "connected" 
+    ? filteredPeople.filter(person => person.connected)
+    : activeTab === "nearby"
+      ? filteredPeople
+      : filteredPeople; // "all" tab
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-muted/20 to-background">
@@ -35,155 +43,180 @@ const People = () => {
         <div className="container flex h-16 items-center justify-between">
           <Link to="/community" className="flex items-center gap-2">
             <Users className="w-6 h-6 text-primary" />
-            <span className="font-bold text-xl">Connect with People</span>
+            <span className="font-bold text-xl">People</span>
           </Link>
         </div>
       </header>
 
       <main className="container py-8">
-        <div className="mb-6">
-          <div className="relative max-w-2xl">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-            <Input placeholder="Search people by name, church, or interests..." className="pl-10" />
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold mb-2">Discover Fellow Believers</h1>
+          <p className="text-muted-foreground">Connect with people from your denomination and beyond</p>
+        </div>
+
+        <div className="flex flex-col md:flex-row gap-4 mb-8">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input
+              placeholder="Search by name, church, or role..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10"
+            />
           </div>
         </div>
 
-        <Tabs defaultValue="suggestions" className="space-y-6">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
           <TabsList className="grid w-full max-w-md grid-cols-3">
-            <TabsTrigger value="suggestions">Suggestions</TabsTrigger>
+            <TabsTrigger value="all">All People</TabsTrigger>
+            <TabsTrigger value="connected">Connections</TabsTrigger>
             <TabsTrigger value="nearby">Nearby</TabsTrigger>
-            <TabsTrigger value="connections">My Connections</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="suggestions" className="space-y-4">
-            <div className="mb-4">
-              <h2 className="text-lg font-semibold">People You May Know</h2>
-              <p className="text-sm text-muted-foreground">Based on shared interests and mutual connections</p>
+          <TabsContent value="all">
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {displayedPeople.map((person) => (
+                <Card key={person.id} className="shadow-soft hover:shadow-card transition-all">
+                  <CardContent className="pt-6">
+                    <div className="flex flex-col items-center text-center mb-4">
+                      <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+                        <span className="text-2xl font-semibold text-primary">
+                          {person.name.split(' ').map(n => n[0]).join('')}
+                        </span>
+                      </div>
+                      <h3 className="font-bold text-lg">{person.name}</h3>
+                      <p className="text-muted-foreground">{person.role}</p>
+                      <p className="text-sm text-muted-foreground">{person.church}</p>
+                      <div className="flex items-center gap-1 mt-1">
+                        <MapPin className="w-3 h-3 text-muted-foreground" />
+                        <span className="text-xs text-muted-foreground">{person.location}</span>
+                      </div>
+                      
+                      {person.mutual > 0 && (
+                        <div className="mt-2 flex items-center gap-1">
+                          <Users2 className="w-3 h-3 text-muted-foreground" />
+                          <span className="text-xs text-muted-foreground">{person.mutual} mutual connections</span>
+                        </div>
+                      )}
+                    </div>
+                    
+                    <div className="flex flex-wrap gap-2 justify-center">
+                      <Button size="sm" variant="outline">
+                        <MessageCircle className="w-4 h-4 mr-2" />
+                        Message
+                      </Button>
+                      
+                      {person.connected ? (
+                        <Button size="sm" variant="outline">
+                          <UserCheck className="w-4 h-4 mr-2" />
+                          Connected
+                        </Button>
+                      ) : (
+                        <Button size="sm">
+                          <UserPlus className="w-4 h-4 mr-2" />
+                          Connect
+                        </Button>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </TabsContent>
+
+          <TabsContent value="connected">
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {displayedPeople.map((person) => (
+                <Card key={person.id} className="shadow-soft hover:shadow-card transition-all">
+                  <CardContent className="pt-6">
+                    <div className="flex flex-col items-center text-center mb-4">
+                      <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+                        <span className="text-2xl font-semibold text-primary">
+                          {person.name.split(' ').map(n => n[0]).join('')}
+                        </span>
+                      </div>
+                      <h3 className="font-bold text-lg">{person.name}</h3>
+                      <p className="text-muted-foreground">{person.role}</p>
+                      <p className="text-sm text-muted-foreground">{person.church}</p>
+                      <div className="flex items-center gap-1 mt-1">
+                        <MapPin className="w-3 h-3 text-muted-foreground" />
+                        <span className="text-xs text-muted-foreground">{person.location}</span>
+                      </div>
+                      
+                      {person.mutual > 0 && (
+                        <div className="mt-2 flex items-center gap-1">
+                          <Users2 className="w-3 h-3 text-muted-foreground" />
+                          <span className="text-xs text-muted-foreground">{person.mutual} mutual connections</span>
+                        </div>
+                      )}
+                    </div>
+                    
+                    <div className="flex flex-wrap gap-2 justify-center">
+                      <Button size="sm" variant="outline">
+                        <MessageCircle className="w-4 h-4 mr-2" />
+                        Message
+                      </Button>
+                      
+                      <Button size="sm" variant="outline">
+                        <UserCheck className="w-4 h-4 mr-2" />
+                        Connected
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </TabsContent>
+
+          <TabsContent value="nearby">
+            <div className="text-center py-12">
+              <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mx-auto mb-4">
+                <MapPin className="w-8 h-8 text-muted-foreground" />
+              </div>
+              <h3 className="text-xl font-semibold mb-2">Find People Nearby</h3>
+              <p className="text-muted-foreground mb-4">
+                Enable location services to discover believers in your area
+              </p>
+              <Button>
+                Enable Location
+              </Button>
             </div>
             
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {suggestions.map((person) => (
-                <Card key={person.id} className="shadow-soft hover:shadow-card transition-all">
-                  <CardContent className="pt-6">
-                    <div className="text-center mb-4">
-                      <div className="w-20 h-20 rounded-full bg-gradient-to-br from-primary/20 to-secondary/20 mx-auto mb-3 flex items-center justify-center">
-                        <Users className="w-10 h-10 text-primary" />
-                      </div>
-                      <h3 className="font-semibold text-lg mb-1">{person.name}</h3>
-                      <div className="flex items-center justify-center gap-1 text-sm text-muted-foreground mb-2">
-                        <Church className="w-3 h-3" />
-                        <span>{person.church}</span>
-                      </div>
-                      <div className="flex items-center justify-center gap-1 text-sm text-muted-foreground mb-3">
-                        <MapPin className="w-3 h-3" />
-                        <span>{person.location}</span>
-                      </div>
-                      <div className="flex flex-wrap gap-1 justify-center mb-3">
-                        {person.interests.map((interest, idx) => (
-                          <Badge key={idx} variant="secondary" className="text-xs">
-                            {interest}
-                          </Badge>
-                        ))}
-                      </div>
-                      <p className="text-xs text-muted-foreground mb-4">
-                        {person.mutualFriends} mutual connections
-                      </p>
-                    </div>
-                    <div className="flex gap-2">
-                      <Button size="sm" className="flex-1 gap-2">
-                        <UserPlus className="w-4 h-4" />
-                        Connect
-                      </Button>
-                      <Button size="sm" variant="outline">
-                        <MessageCircle className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </TabsContent>
-
-          <TabsContent value="nearby" className="space-y-4">
-            <div className="mb-4">
-              <h2 className="text-lg font-semibold">Believers Near You</h2>
-              <p className="text-sm text-muted-foreground">Connect with people in your area</p>
-            </div>
-
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {nearby.map((person) => (
-                <Card key={person.id} className="shadow-soft hover:shadow-card transition-all">
-                  <CardContent className="pt-6">
-                    <div className="flex items-start gap-3 mb-4">
-                      <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
-                        <Users className="w-6 h-6 text-primary" />
-                      </div>
-                      <div className="flex-1">
-                        <h3 className="font-semibold">{person.name}</h3>
+            <div className="mt-8">
+              <h3 className="text-xl font-semibold mb-4">Based on Your Location</h3>
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {displayedPeople.slice(0, 3).map((person) => (
+                  <Card key={person.id} className="shadow-soft hover:shadow-card transition-all">
+                    <CardContent className="pt-6">
+                      <div className="flex flex-col items-center text-center mb-4">
+                        <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+                          <span className="text-2xl font-semibold text-primary">
+                            {person.name.split(' ').map(n => n[0]).join('')}
+                          </span>
+                        </div>
+                        <h3 className="font-bold text-lg">{person.name}</h3>
+                        <p className="text-muted-foreground">{person.role}</p>
                         <p className="text-sm text-muted-foreground">{person.church}</p>
-                        <div className="flex items-center gap-1 text-sm text-muted-foreground mt-1">
-                          <MapPin className="w-3 h-3 text-primary" />
-                          <span className="font-medium text-primary">{person.distance}</span>
+                        <div className="flex items-center gap-1 mt-1">
+                          <MapPin className="w-3 h-3 text-muted-foreground" />
+                          <span className="text-xs text-muted-foreground">{person.location}</span>
                         </div>
                       </div>
-                    </div>
-                    <div className="flex flex-wrap gap-1 mb-4">
-                      {person.interests.map((interest, idx) => (
-                        <Badge key={idx} variant="secondary" className="text-xs">
-                          {interest}
-                        </Badge>
-                      ))}
-                    </div>
-                    <Button size="sm" className="w-full gap-2">
-                      <UserPlus className="w-4 h-4" />
-                      Connect
-                    </Button>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </TabsContent>
-
-          <TabsContent value="connections" className="space-y-4">
-            <div className="mb-4">
-              <h2 className="text-lg font-semibold">Your Connections</h2>
-              <p className="text-sm text-muted-foreground">{connections.length} people you're connected with</p>
-            </div>
-
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {connections.map((person) => (
-                <Card key={person.id} className="shadow-soft hover:shadow-card transition-all">
-                  <CardContent className="pt-6">
-                    <div className="flex items-start gap-3 mb-4">
-                      <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
-                        <Users className="w-6 h-6 text-primary" />
+                      
+                      <div className="flex flex-wrap gap-2 justify-center">
+                        <Button size="sm" variant="outline">
+                          <MessageCircle className="w-4 h-4 mr-2" />
+                          Message
+                        </Button>
+                        <Button size="sm">
+                          <UserPlus className="w-4 h-4 mr-2" />
+                          Connect
+                        </Button>
                       </div>
-                      <div className="flex-1">
-                        <h3 className="font-semibold">{person.name}</h3>
-                        <p className="text-sm text-muted-foreground">{person.church}</p>
-                        <Badge variant="outline" className="mt-2 text-xs">
-                          {person.status}
-                        </Badge>
-                      </div>
-                    </div>
-                    <div className="flex flex-wrap gap-1 mb-4">
-                      {person.interests.map((interest, idx) => (
-                        <Badge key={idx} variant="secondary" className="text-xs">
-                          {interest}
-                        </Badge>
-                      ))}
-                    </div>
-                    <div className="flex gap-2">
-                      <Button size="sm" variant="outline" className="flex-1">
-                        View Profile
-                      </Button>
-                      <Button size="sm" variant="outline">
-                        <MessageCircle className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
             </div>
           </TabsContent>
         </Tabs>

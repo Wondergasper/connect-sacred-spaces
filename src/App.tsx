@@ -39,6 +39,8 @@ const App = () => (
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/community" element={<Community />} />
           <Route path="/community/groups/:id" element={<GroupDetail />} />
+          <Route path="/community/create-group" element={<CreateGroup />} />
+          <Route path="/community/people" element={<People />} />
           <Route path="/media" element={<MediaLibrary />} />
           <Route path="/events" element={<Events />} />
           <Route path="/members" element={<Members />} />
@@ -52,8 +54,6 @@ const App = () => (
           <Route path="/announcements" element={<Announcements />} />
           <Route path="/departments" element={<Departments />} />
           <Route path="/contact" element={<Contact />} />
-          <Route path="/community/create-group" element={<CreateGroup />} />
-          <Route path="/community/people" element={<People />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

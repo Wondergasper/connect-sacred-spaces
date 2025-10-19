@@ -1,41 +1,122 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Textarea } from "@/components/ui/textarea";
-import { Link, useParams } from "react-router-dom";
-import { Users, MessageCircle, Calendar, FileText, Settings, Send, Heart, Share2, Pin } from "lucide-react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { AvatarGroup } from "@/components/AvatarGroup";
+import Chat from "@/components/Chat";
+import { Users, Calendar, MessageCircle, Heart, Share2, MoreVertical, Hash, Globe, Lock, UserPlus, UserCheck, UserX, HandHeart, MessageSquare } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const GroupDetail = () => {
-  const { id } = useParams();
-  const [newPost, setNewPost] = useState("");
-
+  const [activeTab, setActiveTab] = useState("feed");
+  const [isJoined, setIsJoined] = useState(false);
+  
+  // Mock group data
   const group = {
-    name: "Worship Leaders Network",
-    description: "A community for worship leaders to share resources, techniques, and encouragement",
-    members: 248,
-    coverImage: "https://images.unsplash.com/photo-1511379938547-c1f69419868d?w=800&h=300&fit=crop"
+    id: 1,
+    name: "Worship Team",
+    description: "A community of worship leaders and musicians who serve in various churches. We share resources, discuss best practices, and support each other in our ministry.",
+    category: "Music",
+    privacy: "public",
+    members: 156,
+    posts: 12,
+    icon: "🎵",
+    membersYouKnow: 3,
+    admins: ["Sarah Johnson", "Michael Davis"],
+    tags: ["#worship", "#music", "#ministry", "#community"],
+    location: "Global",
+    established: "March 2022"
   };
 
-  const posts = [
-    { id: 1, author: "Sarah Johnson", role: "Worship Pastor", content: "Just learned a new chord progression for 'Great Are You Lord'. Anyone want to collaborate on an arrangement?", likes: 12, comments: 5, time: "2h ago", pinned: true },
-    { id: 2, author: "Mike Wilson", role: "Music Director", content: "Reminder: Our virtual worship workshop is this Saturday at 3 PM. See you there!", likes: 24, comments: 8, time: "5h ago", pinned: false },
-    { id: 3, author: "Grace Lee", role: "Choir Director", content: "Looking for recommendations on vocal warm-up exercises for our Sunday morning team.", likes: 8, comments: 12, time: "1d ago", pinned: false },
-  ];
-
+  // Mock members
   const members = [
-    { name: "Sarah Johnson", role: "Worship Pastor", church: "Grace Chapel" },
-    { name: "Mike Wilson", role: "Music Director", church: "Faith Community" },
-    { name: "Grace Lee", role: "Choir Director", church: "Bethel Church" },
-    { name: "David Kim", role: "Worship Leader", church: "New Life Church" },
+    { name: "Sarah Johnson", role: "Admin", avatar: "SJ" },
+    { name: "Michael Davis", role: "Admin", avatar: "MD" },
+    { name: "Emma Wilson", role: "Member", avatar: "EW" },
+    { name: "James Brown", role: "Member", avatar: "JB" },
+    { name: "Olivia Garcia", role: "Member", avatar: "OG" },
+    { name: "David Lee", role: "Member", avatar: "DL" },
+    { name: "Sophia Chen", role: "Member", avatar: "SC" },
+    { name: "Robert Taylor", role: "Member", avatar: "RT" },
   ];
 
-  const events = [
-    { id: 1, title: "Virtual Worship Workshop", date: "Sat, Dec 21", time: "3:00 PM", attendees: 45 },
-    { id: 2, title: "Song Writing Session", date: "Sun, Dec 29", time: "6:00 PM", attendees: 28 },
+  // Mock posts
+  const posts = [
+    {
+      id: 1,
+      author: "Sarah Johnson",
+      time: "2 hours ago",
+      content: "New worship resource: I've been using this chord progression app and it's been a game changer for our team. Check it out!",
+      likes: 24,
+      comments: 8,
+    },
+    {
+      id: 2,
+      author: "James Brown",
+      time: "5 hours ago",
+      content: "Praying for our worship teams as we prepare for the Christmas service. May the Lord guide our hearts and voices.",
+      likes: 42,
+      comments: 15,
+    },
   ];
+
+  // Mock events
+  const events = [
+    {
+      id: 1,
+      title: "Monthly Worship Planning Meeting",
+      date: "Dec 20, 2024",
+      time: "7:00 PM",
+      location: "Online",
+    },
+    {
+      id: 2,
+      title: "Worship Night",
+      date: "Dec 25, 2024",
+      time: "7:00 PM",
+      location: "Main Sanctuary",
+    },
+  ];
+
+  // Mock chat messages
+  const [messages, setMessages] = useState([
+    {
+      id: "1",
+      sender: "Sarah Johnson",
+      senderAvatar: "SJ",
+      content: "Hi everyone! Let's discuss the songs for Sunday's service.",
+      timestamp: "10:30 AM",
+      isOwn: false
+    },
+    {
+      id: "2",
+      sender: "You",
+      senderAvatar: "JD",
+      content: "I was thinking we could start with 'Goodness of God'",
+      timestamp: "10:32 AM",
+      isOwn: true
+    },
+    {
+      id: "3",
+      sender: "Michael Davis",
+      senderAvatar: "MD",
+      content: "Great choice! That always brings the congregation together.",
+      timestamp: "10:33 AM",
+      isOwn: false
+    }
+  ]);
+
+  const handleSendMessage = (content: string) => {
+    const newMessage = {
+      id: (messages.length + 1).toString(),
+      sender: "You",
+      senderAvatar: "JD",
+      content,
+      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      isOwn: true
+    };
+    setMessages([...messages, newMessage]);
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-muted/20 to-background">
@@ -43,193 +124,301 @@ const GroupDetail = () => {
         <div className="container flex h-16 items-center justify-between">
           <Link to="/community" className="flex items-center gap-2">
             <Users className="w-6 h-6 text-primary" />
-            <span className="font-bold text-xl">{group.name}</span>
+            <span className="font-bold text-xl">Community</span>
           </Link>
-          <Button variant="outline" size="sm">
-            <Settings className="w-4 h-4" />
-          </Button>
+          <div className="flex gap-2">
+            {isJoined ? (
+              <Button>
+                <UserCheck className="w-4 h-4 mr-2" />
+                Joined
+              </Button>
+            ) : (
+              <Button onClick={() => setIsJoined(true)}>
+                <UserPlus className="w-4 h-4 mr-2" />
+                Join Group
+              </Button>
+            )}
+          </div>
         </div>
       </header>
 
-      <div className="relative h-48 bg-cover bg-center" style={{ backgroundImage: `url(${group.coverImage})` }}>
-        <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent" />
-      </div>
-
-      <main className="container -mt-12 relative z-10 pb-8">
+      <main className="container py-8">
+        {/* Group Header */}
         <Card className="shadow-card mb-6">
           <CardContent className="pt-6">
-            <h1 className="text-3xl font-bold mb-2">{group.name}</h1>
-            <p className="text-muted-foreground mb-4">{group.description}</p>
-            <div className="flex items-center gap-4">
-              <span className="text-sm text-muted-foreground">
-                <Users className="w-4 h-4 inline mr-1" />
-                {group.members} members
-              </span>
-              <Button size="sm">
-                <MessageCircle className="w-4 h-4 mr-2" />
-                Join Group
-              </Button>
+            <div className="flex flex-col md:flex-row gap-6">
+              <div className="flex-shrink-0">
+                <div className="w-24 h-24 rounded-xl bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center text-4xl">
+                  {group.icon}
+                </div>
+              </div>
+              
+              <div className="flex-1">
+                <div className="flex flex-wrap items-center gap-2 mb-2">
+                  <h1 className="text-3xl font-bold">{group.name}</h1>
+                  <Badge variant={group.privacy === "private" ? "secondary" : "default"}>
+                    {group.privacy}
+                  </Badge>
+                </div>
+                
+                <p className="text-muted-foreground mb-4">{group.description}</p>
+                
+                <div className="flex flex-wrap gap-4 mb-4">
+                  <div className="flex items-center gap-2">
+                    <Users className="w-4 h-4 text-muted-foreground" />
+                    <span>{group.members} members</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <MessageCircle className="w-4 h-4 text-muted-foreground" />
+                    <span>{group.posts} posts</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <MessageSquare className="w-4 h-4 text-muted-foreground" />
+                    <span>Live chat</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Calendar className="w-4 h-4 text-muted-foreground" />
+                    <span>Est. {group.established}</span>
+                  </div>
+                </div>
+                
+                <div className="flex flex-wrap gap-2 mb-4">
+                  {group.tags.map((tag, index) => (
+                    <Badge key={index} variant="outline">{tag}</Badge>
+                  ))}
+                </div>
+                
+                <div className="flex flex-wrap items-center gap-4">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-muted-foreground">Group Admins:</span>
+                    <div className="flex -space-x-2">
+                      {group.admins.slice(0, 3).map((admin, index) => (
+                        <div key={index} className="w-8 h-8 rounded-full bg-primary/10 border-2 border-background flex items-center justify-center text-xs font-medium">
+                          {admin.split(' ').map(n => n[0]).join('')}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-muted-foreground">Members you know:</span>
+                    <span className="font-medium">{group.membersYouKnow}</span>
+                  </div>
+                </div>
+              </div>
             </div>
           </CardContent>
         </Card>
 
-        <div className="grid lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2 space-y-6">
-            <Tabs defaultValue="feed" className="space-y-6">
-              <TabsList className="grid w-full grid-cols-4">
-                <TabsTrigger value="feed">Feed</TabsTrigger>
-                <TabsTrigger value="chat">Chat</TabsTrigger>
-                <TabsTrigger value="events">Events</TabsTrigger>
-                <TabsTrigger value="files">Files</TabsTrigger>
-              </TabsList>
+        {/* Tabs */}
+        <div className="flex border-b mb-6">
+          <button
+            className={`pb-3 px-4 font-medium ${
+              activeTab === "feed"
+                ? "text-primary border-b-2 border-primary"
+                : "text-muted-foreground"
+            }`}
+            onClick={() => setActiveTab("feed")}
+          >
+            Feed
+          </button>
+          <button
+            className={`pb-3 px-4 font-medium ${
+              activeTab === "chat"
+                ? "text-primary border-b-2 border-primary"
+                : "text-muted-foreground"
+            }`}
+            onClick={() => setActiveTab("chat")}
+          >
+            Chat
+          </button>
+          <button
+            className={`pb-3 px-4 font-medium ${
+              activeTab === "members"
+                ? "text-primary border-b-2 border-primary"
+                : "text-muted-foreground"
+            }`}
+            onClick={() => setActiveTab("members")}
+          >
+            Members
+          </button>
+          <button
+            className={`pb-3 px-4 font-medium ${
+              activeTab === "events"
+                ? "text-primary border-b-2 border-primary"
+                : "text-muted-foreground"
+            }`}
+            onClick={() => setActiveTab("events")}
+          >
+            Events
+          </button>
+          <button
+            className={`pb-3 px-4 font-medium ${
+              activeTab === "files"
+                ? "text-primary border-b-2 border-primary"
+                : "text-muted-foreground"
+            }`}
+            onClick={() => setActiveTab("files")}
+          >
+            Files
+          </button>
+        </div>
 
-              <TabsContent value="feed" className="space-y-6">
-                <Card className="shadow-soft">
-                  <CardContent className="pt-6">
-                    <Textarea 
-                      placeholder="Share something with the group..." 
-                      value={newPost}
-                      onChange={(e) => setNewPost(e.target.value)}
-                      rows={3}
-                      className="mb-3"
-                    />
-                    <Button className="w-full">
-                      <Send className="w-4 h-4 mr-2" />
-                      Post
+        {activeTab === "feed" && (
+          <div className="space-y-4">
+            {posts.map((post) => (
+              <Card key={post.id} className="shadow-soft hover:shadow-card transition-all">
+                <CardHeader>
+                  <div className="flex items-start justify-between">
+                    <div className="flex gap-3">
+                      <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                        <Users className="w-5 h-5 text-primary" />
+                      </div>
+                      <div>
+                        <p className="font-semibold">{post.author}</p>
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                          <span>Admin</span>
+                          <span>•</span>
+                          <span>{post.time}</span>
+                        </div>
+                      </div>
+                    </div>
+                    <Button variant="ghost" size="icon">
+                      <MoreVertical className="w-4 h-4" />
                     </Button>
-                  </CardContent>
-                </Card>
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <p className="text-foreground">{post.content}</p>
+                  <div className="flex items-center gap-6 pt-2">
+                    <Button variant="ghost" size="sm" className="gap-2">
+                      <Heart className="w-4 h-4" />
+                      {post.likes}
+                    </Button>
+                    <Button variant="ghost" size="sm" className="gap-2">
+                      <MessageCircle className="w-4 h-4" />
+                      {post.comments}
+                    </Button>
+                    <Button variant="ghost" size="sm" className="gap-2">
+                      <HandHeart className="w-4 h-4" />
+                      Pray
+                    </Button>
+                    <Button variant="ghost" size="sm" className="gap-2">
+                      <Share2 className="w-4 h-4" />
+                      Share
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
 
-                {posts.map((post) => (
-                  <Card key={post.id} className={`shadow-soft ${post.pinned ? 'border-l-4 border-l-primary' : ''}`}>
-                    <CardContent className="pt-6">
-                      {post.pinned && (
-                        <div className="flex items-center gap-2 text-sm text-primary mb-3">
-                          <Pin className="w-4 h-4" />
-                          Pinned Post
+        {activeTab === "chat" && (
+          <div className="h-[500px]">
+            <Chat 
+              groupName={group.name} 
+              members={group.members} 
+              messages={messages} 
+              onSendMessage={handleSendMessage} 
+            />
+          </div>
+        )}
+
+        {activeTab === "members" && (
+          <div>
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-xl font-semibold">Group Members ({group.members})</h3>
+              <Button variant="outline" size="sm">
+                Invite Members
+              </Button>
+            </div>
+            
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {members.map((member, index) => (
+                <Card key={index} className="shadow-soft">
+                  <CardContent className="pt-6">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+                          <span className="font-semibold text-primary">{member.avatar}</span>
                         </div>
-                      )}
-                      <div className="flex gap-3 mb-4">
-                        <Avatar>
-                          <AvatarFallback>{post.author[0]}</AvatarFallback>
-                        </Avatar>
-                        <div className="flex-1">
-                          <p className="font-semibold">{post.author}</p>
-                          <p className="text-sm text-muted-foreground">{post.role} • {post.time}</p>
+                        <div>
+                          <p className="font-semibold">{member.name}</p>
+                          <p className="text-sm text-muted-foreground">{member.role}</p>
                         </div>
                       </div>
-                      <p className="mb-4">{post.content}</p>
-                      <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                        <button className="flex items-center gap-1 hover:text-primary transition-colors">
-                          <Heart className="w-4 h-4" />
-                          {post.likes}
-                        </button>
-                        <button className="flex items-center gap-1 hover:text-primary transition-colors">
-                          <MessageCircle className="w-4 h-4" />
-                          {post.comments}
-                        </button>
-                        <button className="flex items-center gap-1 hover:text-primary transition-colors">
-                          <Share2 className="w-4 h-4" />
-                          Share
-                        </button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </TabsContent>
-
-              <TabsContent value="chat" className="space-y-4">
-                <Card className="shadow-card h-96 flex flex-col">
-                  <CardContent className="pt-6 flex-1 overflow-y-auto">
-                    <p className="text-center text-muted-foreground">Real-time chat messages will appear here</p>
-                  </CardContent>
-                  <div className="p-4 border-t">
-                    <div className="flex gap-2">
-                      <Input placeholder="Type a message..." />
-                      <Button>
-                        <Send className="w-4 h-4" />
+                      <Button variant="outline" size="sm">
+                        Message
                       </Button>
                     </div>
-                  </div>
-                </Card>
-              </TabsContent>
-
-              <TabsContent value="events" className="space-y-4">
-                {events.map((event) => (
-                  <Card key={event.id} className="shadow-soft">
-                    <CardContent className="pt-6">
-                      <h3 className="font-semibold text-lg mb-2">{event.title}</h3>
-                      <div className="flex items-center gap-4 text-sm text-muted-foreground mb-3">
-                        <span className="flex items-center gap-1">
-                          <Calendar className="w-4 h-4" />
-                          {event.date}
-                        </span>
-                        <span>{event.time}</span>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm text-muted-foreground">{event.attendees} attending</span>
-                        <Button size="sm">RSVP</Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </TabsContent>
-
-              <TabsContent value="files">
-                <Card className="shadow-card">
-                  <CardContent className="pt-6 text-center py-12">
-                    <FileText className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-                    <p className="text-muted-foreground">No files shared yet</p>
                   </CardContent>
                 </Card>
-              </TabsContent>
-            </Tabs>
+              ))}
+            </div>
           </div>
+        )}
 
-          <div className="space-y-6">
-            <Card className="shadow-soft">
-              <CardContent className="pt-6">
-                <h3 className="font-semibold mb-4">Members ({group.members})</h3>
-                <div className="space-y-3">
-                  {members.map((member, index) => (
-                    <div key={index} className="flex items-center gap-3">
-                      <Avatar>
-                        <AvatarFallback>{member.name[0]}</AvatarFallback>
-                      </Avatar>
-                      <div className="flex-1">
-                        <p className="font-medium text-sm">{member.name}</p>
-                        <p className="text-xs text-muted-foreground">{member.role}</p>
-                      </div>
+        {activeTab === "events" && (
+          <div>
+            <h3 className="text-xl font-semibold mb-4">Upcoming Events</h3>
+            
+            <div className="space-y-4">
+              {events.map((event) => (
+                <Card key={event.id} className="shadow-soft">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Calendar className="w-5 h-5 text-primary" />
+                      {event.title}
+                    </CardTitle>
+                    <CardDescription>
+                      {event.date} at {event.time}
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="flex justify-between items-center">
+                      <span className="text-muted-foreground">{event.location}</span>
+                      <Button size="sm">View Event</Button>
                     </div>
-                  ))}
-                  <Button variant="outline" className="w-full mt-4" size="sm">
-                    View All Members
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="shadow-soft">
-              <CardContent className="pt-6">
-                <h3 className="font-semibold mb-4">Group Info</h3>
-                <div className="space-y-3 text-sm">
-                  <div>
-                    <p className="text-muted-foreground">Category</p>
-                    <p className="font-medium">Worship Teams</p>
-                  </div>
-                  <div>
-                    <p className="text-muted-foreground">Privacy</p>
-                    <p className="font-medium">Public</p>
-                  </div>
-                  <div>
-                    <p className="text-muted-foreground">Created</p>
-                    <p className="font-medium">Jan 15, 2024</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
           </div>
-        </div>
+        )}
+
+        {activeTab === "files" && (
+          <div>
+            <h3 className="text-xl font-semibold mb-4">Shared Files</h3>
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {[
+                { id: 1, name: "Worship Guide.docx", type: "document", size: "1.2 MB" },
+                { id: 2, name: "Chord Charts.pdf", type: "document", size: "850 KB" },
+                { id: 3, name: "Weekly Schedule.xlsx", type: "spreadsheet", size: "420 KB" }
+              ].map((file) => (
+                <Card key={file.id} className="shadow-soft">
+                  <CardContent className="p-4 flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                      <Hash className="w-5 h-5 text-primary" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-sm truncate">{file.name}</p>
+                      <p className="text-xs text-muted-foreground">{file.size}</p>
+                    </div>
+                    <Button variant="outline" size="sm">Download</Button>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+            
+            <div className="mt-8 text-center">
+              <Button variant="outline" className="gap-2">
+                <Hash className="w-4 h-4" />
+                Upload File
+              </Button>
+            </div>
+          </div>
+        )}
       </main>
     </div>
   );

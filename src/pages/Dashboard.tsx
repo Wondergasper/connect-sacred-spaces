@@ -1,15 +1,31 @@
-import { Bell, Church, Users, Calendar, DollarSign, BookOpen, MessageCircle } from "lucide-react";
+import { Bell, Church, Users, Calendar, DollarSign, BookOpen, MessageCircle, ChevronDown, Globe } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { useAuth } from "@/context/AuthContext";
 import { Link } from "react-router-dom";
 
 const Dashboard = () => {
+  const { state, dispatch } = useAuth();
   const stats = [
     { label: "Active Members", value: "1,234", icon: Users, trend: "+12%" },
     { label: "This Week's Events", value: "8", icon: Calendar, trend: "+2" },
     { label: "Monthly Donations", value: "$12,450", icon: DollarSign, trend: "+18%" },
     { label: "New Messages", value: "42", icon: MessageCircle, trend: "+5" },
   ];
+
+  // Mock denominations data
+  const denominations = [
+    { id: "rccg", name: "Redeemed Christian Church of God", current: true },
+    { id: "winners", name: "Winners' Chapel", current: false },
+    { id: "global", name: "Global Community", current: false }
+  ];
+
+  const currentDenomination = denominations.find(d => d.id === state.currentDenomination) || denominations[0];
+
+  const handleDenominationChange = (denomId: string) => {
+    dispatch({ type: 'SET_CURRENT_DENOMINATION', payload: denomId });
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-muted/20 to-background">
@@ -20,12 +36,45 @@ const Dashboard = () => {
             <Church className="w-6 h-6 text-primary" />
             <span className="font-bold text-xl">ChurchConnect</span>
           </div>
+          
           <div className="flex items-center gap-4">
+            {/* Denomination Switcher */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+                    {currentDenomination.id === "global" ? <Globe className="w-4 h-4 text-primary" /> : <Church className="w-4 h-4 text-primary" />}
+                  </div>
+                  <span className="text-sm font-medium">{currentDenomination.name}</span>
+                  <ChevronDown className="w-4 h-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-64">
+                {denominations.map((denom) => (
+                  <DropdownMenuItem 
+                    key={denom.id} 
+                    className="flex items-center gap-3"
+                    onClick={() => handleDenominationChange(denom.id)}
+                  >
+                    <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center">
+                      {denom.id === "global" ? <Globe className="w-3 h-3 text-primary" /> : <Church className="w-3 h-3 text-primary" />}
+                    </div>
+                    <span>{denom.name}</span>
+                    {denom.id === state.currentDenomination && (
+                      <div className="ml-auto w-2 h-2 rounded-full bg-primary"></div>
+                    )}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+            
             <Button variant="ghost" size="icon">
               <Bell className="w-5 h-5" />
             </Button>
             <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-              <span className="text-sm font-medium text-primary">JD</span>
+              <span className="text-sm font-medium text-primary">
+                {state.user?.firstName?.charAt(0)}{state.user?.lastName?.charAt(0)}
+              </span>
             </div>
           </div>
         </div>
@@ -34,8 +83,8 @@ const Dashboard = () => {
       <main className="container py-8">
         {/* Welcome Section */}
         <div className="mb-8 animate-fade-in">
-          <h1 className="text-3xl font-bold mb-2">Welcome back, John</h1>
-          <p className="text-muted-foreground">Here's what's happening in your community today</p>
+          <h1 className="text-3xl font-bold mb-2">Welcome back, {state.user?.firstName}</h1>
+          <p className="text-muted-foreground">Here's what's happening in your {currentDenomination.name} community today</p>
         </div>
 
         {/* Stats Grid */}
@@ -64,7 +113,7 @@ const Dashboard = () => {
                 <Calendar className="w-5 h-5 text-primary" />
                 Upcoming Events
               </CardTitle>
-              <CardDescription>Your next church activities</CardDescription>
+              <CardDescription>Your next {currentDenomination.name} activities</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
@@ -96,7 +145,7 @@ const Dashboard = () => {
                 <BookOpen className="w-5 h-5 text-primary" />
                 Recent Sermons
               </CardTitle>
-              <CardDescription>Latest messages from your church</CardDescription>
+              <CardDescription>Latest messages from {currentDenomination.name}</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
@@ -128,7 +177,7 @@ const Dashboard = () => {
                 <Users className="w-5 h-5 text-primary" />
                 Community Groups
               </CardTitle>
-              <CardDescription>Connect with fellow believers</CardDescription>
+              <CardDescription>Connect with fellow {currentDenomination.name} believers</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
@@ -149,6 +198,25 @@ const Dashboard = () => {
                   <Link to="/community">
                     <Button size="sm" variant="secondary">View</Button>
                   </Link>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+        
+        {/* Devotionals Section */}
+        <div className="mt-12">
+          <h2 className="text-2xl font-bold mb-6">Daily Devotionals</h2>
+          <Card className="shadow-card">
+            <CardContent className="pt-6">
+              <div className="flex items-start gap-4">
+                <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                  <BookOpen className="w-6 h-6 text-primary" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-bold text-lg mb-1">The Peace of God</h3>
+                  <p className="text-sm text-muted-foreground mb-2">Philippians 4:6-7</p>
+                  <p className="text-foreground">Do not be anxious about anything, but in every situation, by prayer and petition, with thanksgiving, present your requests to God. And the peace of God, which transcends all understanding, will guard your hearts and your minds in Christ Jesus.</p>
                 </div>
               </div>
             </CardContent>
