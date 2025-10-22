@@ -2,11 +2,28 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Church, Users, BookOpen, Music, Heart, MessageCircle, Calendar, ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useAuth } from "@/context/AuthContext";
+import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import heroImage from "@/assets/hero-church.jpg";
 import communityNetwork from "@/assets/community-network.png";
 import mediaLibrary from "@/assets/media-library.png";
 
 const Index = () => {
+  const { state } = useAuth();
+  const navigate = useNavigate();
+
+  // Redirect authenticated users based on their role
+  useEffect(() => {
+    if (state.isAuthenticated) {
+      if (state.user?.role === 'admin' || state.user?.role === 'pastor') {
+        navigate('/admin-dashboard');
+      } else {
+        navigate('/dashboard');
+      }
+    }
+  }, [state.isAuthenticated, state.user, navigate]);
+
   const features = [
     {
       icon: Church,

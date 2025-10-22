@@ -1,18 +1,34 @@
-import { Bell, Church, Users, Calendar, DollarSign, BookOpen, MessageCircle, ChevronDown, Globe } from "lucide-react";
+import { Bell, Church, Users, Calendar, DollarSign, BookOpen, MessageCircle, ChevronDown, Globe, User, Settings, LogOut, Heart } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Badge } from "@/components/ui/badge";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/context/AuthContext";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { dashboardService } from "@/services/dashboardService";
+import { authService } from "@/services/authService";
+import { useEffect, useState } from "react";
+import { UserNav } from "@/components/Navigation";
 
-const Dashboard = () => {
+interface DashboardStats {
+  activeMembers: number;
+  upcomingEvents: number;
+  monthlyDonations: number;
+  newGroups: number;
+}
+
+const MemberDashboard = () => {
   const { state, dispatch } = useAuth();
-  const stats = [
-    { label: "Active Members", value: "1,234", icon: Users, trend: "+12%" },
-    { label: "This Week's Events", value: "8", icon: Calendar, trend: "+2" },
-    { label: "Monthly Donations", value: "$12,450", icon: DollarSign, trend: "+18%" },
-    { label: "New Messages", value: "42", icon: MessageCircle, trend: "+5" },
-  ];
+  const [stats, setStats] = useState<DashboardStats | null>(null);
+  const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
+
+  // Redirect admin users to admin dashboard
+  useEffect(() => {
+    if (state.isAuthenticated && state.user && (state.user.role === 'admin' || state.user.role === 'pastor')) {
+      navigate('/admin-dashboard');
+    }
+  }, [state.isAuthenticated, state.user, navigate]);
 
   // Mock denominations data
   const denominations = [
@@ -27,14 +43,34 @@ const Dashboard = () => {
     dispatch({ type: 'SET_CURRENT_DENOMINATION', payload: denomId });
   };
 
+  useEffect(() => {
+    const fetchDashboardStats = async () => {
+      try {
+        const statsData = await dashboardService.getDashboardStats();
+        setStats(statsData);
+      } catch (error) {
+        console.error("Failed to load dashboard stats:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDashboardStats();
+  }, []);
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-muted/20 to-background">
-      {/* Header */}
-      <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
+      {/* Header with warm, welcoming design */}
+      <header className="sticky top-0 z-50 w-full border-b bg-white/80 backdrop-blur supports-[backdrop-filter]:bg-white/60 shadow-sm">
         <div className="container flex h-16 items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Church className="w-6 h-6 text-primary" />
-            <span className="font-bold text-xl">ChurchConnect</span>
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center">
+              <Church className="w-6 h-6 text-white" />
+            </div>
+            <div className="flex items-baseline gap-2">
+              <span className="font-bold text-xl bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">ChurchConnect</span>
+              <Badge className="bg-blue-500 hover:bg-blue-600 text-white font-bold">MEMBER</Badge>
+            </div>
           </div>
           
           <div className="flex items-center gap-4">
@@ -71,38 +107,120 @@ const Dashboard = () => {
             <Button variant="ghost" size="icon">
               <Bell className="w-5 h-5" />
             </Button>
-            <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-              <span className="text-sm font-medium text-primary">
-                {state.user?.firstName?.charAt(0)}{state.user?.lastName?.charAt(0)}
-              </span>
-            </div>
+            <UserNav onLogout={() => {
+              authService.logout();
+              dispatch({ type: 'LOGOUT' });
+              navigate('/auth');
+            }} />
           </div>
         </div>
       </header>
 
+      {/* Member Dashboard Banner */}
+      <div className="bg-gradient-to-r from-blue-500 to-purple-500 text-white p-3 shadow-md">
+        <div className="container flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <Heart className="w-5 h-5" />
+            <div>
+              <h2 className="font-bold text-md">Member Dashboard</h2>
+              <p className="text-blue-100 text-xs">Connect with your faith community</p>
+            </div>
+          </div>
+          <Badge variant="secondary" className="bg-white/20 text-white border-0 font-bold text-xs">
+            PERSONAL ACCESS
+          </Badge>
+        </div>
+      </div>
+
       <main className="container py-8">
-        {/* Welcome Section */}
-        <div className="mb-8 animate-fade-in">
-          <h1 className="text-3xl font-bold mb-2">Welcome back, {state.user?.firstName}</h1>
-          <p className="text-muted-foreground">Here's what's happening in your {currentDenomination.name} community today</p>
+        {/* Role Indicator Banner */}
+        <div className="mb-6 p-4 rounded-xl bg-gradient-to-r from-blue-500 to-purple-500 text-white shadow-lg">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
+                <Heart className="w-5 h-5" />
+              </div>
+              <div>
+                <h2 className="font-bold text-lg">Member Dashboard</h2>
+                <p className="text-blue-100 text-sm">Personal faith community experience</p>
+              </div>
+            </div>
+            <Badge variant="secondary" className="bg-white/20 text-white border-0">
+              MEMBER
+            </Badge>
+          </div>
         </div>
 
         {/* Stats Grid */}
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 mb-8 animate-slide-up">
-          {stats.map((stat, index) => (
-            <Card key={index} className="shadow-soft hover:shadow-card transition-all duration-200">
-              <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">
-                  {stat.label}
-                </CardTitle>
-                <stat.icon className="w-4 h-4 text-primary" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{stat.value}</div>
-                <p className="text-xs text-secondary mt-1">{stat.trend} from last month</p>
-              </CardContent>
-            </Card>
-          ))}
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 mb-8">
+          {stats && !loading ? (
+            <>
+              <Card className="shadow-lg hover:shadow-xl transition-all duration-300 border-0 bg-white/70 backdrop-blur-sm rounded-2xl">
+                <CardHeader className="flex flex-row items-center justify-between pb-2">
+                  <CardTitle className="text-sm font-medium text-muted-foreground">
+                    Active Members
+                  </CardTitle>
+                  <Users className="w-4 h-4 text-blue-500" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-blue-700">{stats.activeMembers}</div>
+                  <p className="text-xs text-green-600 mt-1">+12% from last month</p>
+                </CardContent>
+              </Card>
+              <Card className="shadow-lg hover:shadow-xl transition-all duration-300 border-0 bg-white/70 backdrop-blur-sm rounded-2xl">
+                <CardHeader className="flex flex-row items-center justify-between pb-2">
+                  <CardTitle className="text-sm font-medium text-muted-foreground">
+                    Upcoming Events
+                  </CardTitle>
+                  <Calendar className="w-4 h-4 text-purple-500" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-purple-700">{stats.upcomingEvents}</div>
+                  <p className="text-xs text-green-600 mt-1">+2 from last month</p>
+                </CardContent>
+              </Card>
+              <Card className="shadow-lg hover:shadow-xl transition-all duration-300 border-0 bg-white/70 backdrop-blur-sm rounded-2xl">
+                <CardHeader className="flex flex-row items-center justify-between pb-2">
+                  <CardTitle className="text-sm font-medium text-muted-foreground">
+                    Monthly Donations
+                  </CardTitle>
+                  <DollarSign className="w-4 h-4 text-green-500" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-green-700">${stats.monthlyDonations.toLocaleString()}</div>
+                  <p className="text-xs text-green-600 mt-1">+18% from last month</p>
+                </CardContent>
+              </Card>
+              <Card className="shadow-lg hover:shadow-xl transition-all duration-300 border-0 bg-white/70 backdrop-blur-sm rounded-2xl">
+                <CardHeader className="flex flex-row items-center justify-between pb-2">
+                  <CardTitle className="text-sm font-medium text-muted-foreground">
+                    New Groups
+                  </CardTitle>
+                  <Users className="w-4 h-4 text-orange-500" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-orange-700">{stats.newGroups}</div>
+                  <p className="text-xs text-green-600 mt-1">+3 from last month</p>
+                </CardContent>
+              </Card>
+            </>
+          ) : (
+            // Loading placeholders
+            Array.from({ length: 4 }).map((_, index) => (
+              <Card key={index} className="shadow-soft hover:shadow-card transition-all duration-200">
+                <CardHeader className="flex flex-row items-center justify-between pb-2">
+                  <CardTitle className="text-sm font-medium text-muted-foreground">
+                    Loading...
+                  </CardTitle>
+                  <div className="w-4 h-4 bg-primary/20 rounded animate-pulse" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold h-8 bg-primary/20 rounded animate-pulse" />
+                  <div className="h-4 bg-primary/20 rounded mt-1 animate-pulse" />
+                </CardContent>
+              </Card>
+            ))
+          )}
         </div>
 
         {/* Quick Actions */}
@@ -227,4 +345,4 @@ const Dashboard = () => {
   );
 };
 
-export default Dashboard;
+export default MemberDashboard;

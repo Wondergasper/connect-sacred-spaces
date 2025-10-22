@@ -2,7 +2,7 @@ import React, { createContext, useContext, useReducer } from 'react';
 
 // Define types
 interface User {
-  id: string;
+  _id: string;
   firstName: string;
   lastName: string;
   email: string;
@@ -43,6 +43,13 @@ const AuthContext = createContext<{
 // Reducer
 const authReducer = (state: AuthState, action: AuthAction): AuthState => {
   switch (action.type) {
+    case 'LOGIN_SUCCESS':
+      return {
+        ...state,
+        user: action.payload,
+        isAuthenticated: true,
+        loading: false,
+      };
     case 'SET_USER':
       return {
         ...state,

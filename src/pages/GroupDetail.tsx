@@ -1,110 +1,166 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { AvatarGroup } from "@/components/AvatarGroup";
 import Chat from "@/components/Chat";
 import { Users, Calendar, MessageCircle, Heart, Share2, MoreVertical, Hash, Globe, Lock, UserPlus, UserCheck, UserX, HandHeart, MessageSquare } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
+import { groupService } from "@/services/groupService";
+import { eventService } from "@/services/eventService";
+import { useAuth } from "@/context/AuthContext";
+
+interface Group {
+  _id: string;
+  name: string;
+  description: string;
+  category: string;
+  privacy: 'public' | 'private' | 'secret';
+  members: string[]; // Array of user IDs
+  admins: string[]; // Array of user IDs
+  icon?: string;
+  tags?: string[];
+  createdAt: string;
+}
+
+interface Member {
+  _id: string;
+  firstName: string;
+  lastName: string;
+  role: 'admin' | 'member';
+  avatar?: string;
+}
+
+interface Post {
+  _id: string;
+  author: {
+    _id: string;
+    firstName: string;
+    lastName: string;
+  };
+  createdAt: string;
+  content: string;
+  likes: number;
+  comments: number;
+}
+
+interface Event {
+  _id: string;
+  title: string;
+  date: string;
+  time: string;
+  location: string;
+}
+
+interface Message {
+  id: string;
+  sender: string;
+  content: string;
+  timestamp: string;
+  isOwn: boolean;
+}
 
 const GroupDetail = () => {
   const [activeTab, setActiveTab] = useState("feed");
   const [isJoined, setIsJoined] = useState(false);
-  
-  // Mock group data
-  const group = {
-    id: 1,
-    name: "Worship Team",
-    description: "A community of worship leaders and musicians who serve in various churches. We share resources, discuss best practices, and support each other in our ministry.",
-    category: "Music",
-    privacy: "public",
-    members: 156,
-    posts: 12,
-    icon: "🎵",
-    membersYouKnow: 3,
-    admins: ["Sarah Johnson", "Michael Davis"],
-    tags: ["#worship", "#music", "#ministry", "#community"],
-    location: "Global",
-    established: "March 2022"
-  };
+  const [group, setGroup] = useState<Group | null>(null);
+  const [members, setMembers] = useState<Member[]>([]);
+  const [posts, setPosts] = useState<Post[]>([]);
+  const [events, setEvents] = useState<Event[]>([]);
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [loading, setLoading] = useState(true);
+  const { id } = useParams<{ id: string }>();
+  const { state } = useAuth();
 
-  // Mock members
-  const members = [
-    { name: "Sarah Johnson", role: "Admin", avatar: "SJ" },
-    { name: "Michael Davis", role: "Admin", avatar: "MD" },
-    { name: "Emma Wilson", role: "Member", avatar: "EW" },
-    { name: "James Brown", role: "Member", avatar: "JB" },
-    { name: "Olivia Garcia", role: "Member", avatar: "OG" },
-    { name: "David Lee", role: "Member", avatar: "DL" },
-    { name: "Sophia Chen", role: "Member", avatar: "SC" },
-    { name: "Robert Taylor", role: "Member", avatar: "RT" },
-  ];
+  useEffect(() => {
+    const fetchGroupDetails = async () => {
+      try {
+        if (id) {
+          const groupData = await groupService.getGroup(id);
+          setGroup(groupData);
+          setIsJoined(groupData.members.some((memberId: string) => memberId === state.user?._id));
+          
+          // In a real implementation, we would also fetch members, posts, and events
+          // For now, using mock data for demo purposes
+          setMembers(
+            groupData.members.map((memberId: string, index: number) => ({
+              _id: memberId,
+              firstName: `Member ${index + 1}`,
+              lastName: `LastName ${index + 1}`,
+              role: groupData.admins.includes(memberId) ? 'admin' : 'member',
+            }))
+          );
+          
+          // Mock posts, events, and messages for demo
+          setPosts([
+            {
+              _id: "1",
+              author: { _id: "1", firstName: "Sarah", lastName: "Johnson" },
+              createdAt: "2 hours ago",
+              content: "New worship resource: I've been using this chord progression app and it's been a game changer for our team. Check it out!",
+              likes: 24,
+              comments: 8,
+            },
+            {
+              _id: "2",
+              author: { _id: "2", firstName: "James", lastName: "Brown" },
+              createdAt: "5 hours ago",
+              content: "Praying for our worship teams as we prepare for the Christmas service. May the Lord guide our hearts and voices.",
+              likes: 42,
+              comments: 15,
+            },
+          ]);
+          
+          setEvents([
+            {
+              _id: "1",
+              title: "Monthly Worship Planning Meeting",
+              date: "Dec 20, 2024",
+              time: "7:00 PM",
+              location: "Online",
+            },
+            {
+              _id: "2",
+              title: "Worship Night",
+              date: "Dec 25, 2024",
+              time: "7:00 PM",
+              location: "Main Sanctuary",
+            },
+          ]);
+          
+          setMessages([
+            {
+              id: "1",
+              sender: "Sarah Johnson",
+              content: "Hi everyone! Let's discuss the songs for Sunday's service.",
+              timestamp: "10:30 AM",
+              isOwn: false
+            },
+            {
+              id: "2",
+              sender: "You",
+              content: "I was thinking we could start with 'Goodness of God'",
+              timestamp: "10:32 AM",
+              isOwn: true
+            },
+            {
+              id: "3",
+              sender: "Michael Davis",
+              content: "Great choice! That always brings the congregation together.",
+              timestamp: "10:33 AM",
+              isOwn: false
+            }
+          ]);
+        }
+        setLoading(false);
+      } catch (error) {
+        console.error("Failed to load group details:", error);
+        setLoading(false);
+      }
+    };
 
-  // Mock posts
-  const posts = [
-    {
-      id: 1,
-      author: "Sarah Johnson",
-      time: "2 hours ago",
-      content: "New worship resource: I've been using this chord progression app and it's been a game changer for our team. Check it out!",
-      likes: 24,
-      comments: 8,
-    },
-    {
-      id: 2,
-      author: "James Brown",
-      time: "5 hours ago",
-      content: "Praying for our worship teams as we prepare for the Christmas service. May the Lord guide our hearts and voices.",
-      likes: 42,
-      comments: 15,
-    },
-  ];
-
-  // Mock events
-  const events = [
-    {
-      id: 1,
-      title: "Monthly Worship Planning Meeting",
-      date: "Dec 20, 2024",
-      time: "7:00 PM",
-      location: "Online",
-    },
-    {
-      id: 2,
-      title: "Worship Night",
-      date: "Dec 25, 2024",
-      time: "7:00 PM",
-      location: "Main Sanctuary",
-    },
-  ];
-
-  // Mock chat messages
-  const [messages, setMessages] = useState([
-    {
-      id: "1",
-      sender: "Sarah Johnson",
-      senderAvatar: "SJ",
-      content: "Hi everyone! Let's discuss the songs for Sunday's service.",
-      timestamp: "10:30 AM",
-      isOwn: false
-    },
-    {
-      id: "2",
-      sender: "You",
-      senderAvatar: "JD",
-      content: "I was thinking we could start with 'Goodness of God'",
-      timestamp: "10:32 AM",
-      isOwn: true
-    },
-    {
-      id: "3",
-      sender: "Michael Davis",
-      senderAvatar: "MD",
-      content: "Great choice! That always brings the congregation together.",
-      timestamp: "10:33 AM",
-      isOwn: false
-    }
-  ]);
+    fetchGroupDetails();
+  }, [id, state.user?._id]);
 
   const handleSendMessage = (content: string) => {
     const newMessage = {

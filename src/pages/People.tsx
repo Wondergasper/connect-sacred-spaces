@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -6,28 +6,68 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Users, Search, UserPlus, UserCheck, MessageCircle, Mail, Phone, MapPin, Building2, Users2 } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useAuth } from "@/context/AuthContext";
+import { churchService } from "@/services/churchService";
+
+interface Person {
+  _id: string;
+  firstName: string;
+  lastName: string;
+  role?: string;
+  church: string;
+  location?: string;
+  mutual?: number;
+  connected?: boolean;
+}
 
 const People = () => {
   const [activeTab, setActiveTab] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
+  const [people, setPeople] = useState<Person[]>([]);
+  const [loading, setLoading] = useState(true);
+  const { state } = useAuth();
 
-  // Mock people data
-  const people = [
-    { id: 1, name: "James Wilson", role: "Worship Leader", church: "Grace Community", location: "New York, NY", mutual: 3, connected: false },
-    { id: 2, name: "Maria Garcia", role: "Sunday School Teacher", church: "Victory Church", location: "Los Angeles, CA", mutual: 1, connected: true },
-    { id: 3, name: "Thomas Chen", role: "IT Department", church: "City Light Fellowship", location: "San Francisco, CA", mutual: 5, connected: false },
-    { id: 4, name: "Patricia Brown", role: "Deacon", church: "Grace Community", location: "Chicago, IL", mutual: 2, connected: false },
-    { id: 5, name: "Ahmed Hassan", role: "Community Outreach", church: "Faith Center", location: "Houston, TX", mutual: 4, connected: true },
-    { id: 6, name: "Olivia Smith", role: "Youth Leader", church: "New Hope Church", location: "Miami, FL", mutual: 3, connected: false },
-    { id: 7, name: "David Kim", role: "Pastor", church: "Grace Community", location: "Seattle, WA", mutual: 0, connected: false },
-    { id: 8, name: "Sarah Johnson", role: "Music Director", church: "Harvest Chapel", location: "Boston, MA", mutual: 2, connected: true },
-  ];
+  useEffect(() => {
+    const fetchPeople = async () => {
+      try {
+        // In a real implementation, we would fetch people from the API
+        // For now, we'll use mock data based on the user's church
+        if (state.user?.church) {
+          // In a real app, we would fetch people from the same church or denomination
+          const churchMembers = await churchService.getChurch(state.user.church as string);
+          // Process the data to match expected format
+        }
+        
+        // For now, using mock data, but in real implementation:
+        // const peopleData = await peopleService.getPeople();
+        // setPeople(peopleData);
+        
+        // Mock data as a fallback
+        setPeople([
+          { _id: "1", firstName: "James", lastName: "Wilson", role: "Worship Leader", church: "Grace Community", location: "New York, NY", mutual: 3, connected: false },
+          { _id: "2", firstName: "Maria", lastName: "Garcia", role: "Sunday School Teacher", church: "Victory Church", location: "Los Angeles, CA", mutual: 1, connected: true },
+          { _id: "3", firstName: "Thomas", lastName: "Chen", role: "IT Department", church: "City Light Fellowship", location: "San Francisco, CA", mutual: 5, connected: false },
+          { _id: "4", firstName: "Patricia", lastName: "Brown", role: "Deacon", church: "Grace Community", location: "Chicago, IL", mutual: 2, connected: false },
+          { _id: "5", firstName: "Ahmed", lastName: "Hassan", role: "Community Outreach", church: "Faith Center", location: "Houston, TX", mutual: 4, connected: true },
+          { _id: "6", firstName: "Olivia", lastName: "Smith", role: "Youth Leader", church: "New Hope Church", location: "Miami, FL", mutual: 3, connected: false },
+          { _id: "7", firstName: "David", lastName: "Kim", role: "Pastor", church: "Grace Community", location: "Seattle, WA", mutual: 0, connected: false },
+          { _id: "8", firstName: "Sarah", lastName: "Johnson", role: "Music Director", church: "Harvest Chapel", location: "Boston, MA", mutual: 2, connected: true },
+        ]);
+        setLoading(false);
+      } catch (error) {
+        console.error("Failed to load people:", error);
+        setLoading(false);
+      }
+    };
+
+    fetchPeople();
+  }, [state.user?.church]);
 
   // Filter people based on search term
   const filteredPeople = people.filter(person => 
-    person.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    `${person.firstName} ${person.lastName}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
     person.church.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    person.role.toLowerCase().includes(searchTerm.toLowerCase())
+    (person.role || "").toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   // Filter by tab

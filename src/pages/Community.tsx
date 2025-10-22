@@ -6,82 +6,119 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Users, Plus, Search, MessageCircle, Heart, Share2, MoreVertical, HandHeart, UserPlus, UserCheck, Bell, Activity, TrendingUp } from "lucide-react";
 import { Link } from "react-router-dom";
+import { groupService } from "@/services/groupService";
+import { eventService } from "@/services/eventService";
+import { useAuth } from "@/context/AuthContext";
+
+interface Group {
+  id: string;
+  name: string;
+  members: number;
+  posts: number;
+  image?: string;
+  category: string;
+  privacy: 'public' | 'private' | 'secret';
+  membersYouKnow: number;
+  newPosts: number;
+}
+
+interface Post {
+  id: string;
+  author: {
+    firstName: string;
+    lastName: string;
+  };
+  time: string;
+  content: string;
+  likes: number;
+  comments: number;
+  group: string;
+  church: string;
+  liked: boolean;
+  prayed: boolean;
+}
+
+interface Person {
+  id: string;
+  name: string;
+  role: string;
+  church: string;
+  mutual: number;
+  connected: boolean;
+}
 
 const Community = () => {
   const [activeTab, setActiveTab] = useState("feed");
-  const [notifications, setNotifications] = useState(3); // Simulated notifications count
+  const [notifications, setNotifications] = useState(0);
   const [newPostContent, setNewPostContent] = useState("");
   const [showNewPost, setShowNewPost] = useState(false);
+  const [groups, setGroups] = useState<Group[]>([]);
+  const [globalPosts, setGlobalPosts] = useState<Post[]>([]);
+  const [people, setPeople] = useState<Person[]>([]);
+  const [loading, setLoading] = useState(true);
+  const { state } = useAuth();
 
-  // Mock data for different sections
-  const groups = [
-    { id: 1, name: "Worship Team", members: 156, posts: 12, image: "🎵", category: "Music", privacy: "public", membersYouKnow: 3, newPosts: 2 },
-    { id: 2, name: "Bible Study Circle", members: 89, posts: 5, image: "📖", category: "Study", privacy: "private", membersYouKnow: 1, newPosts: 0 },
-    { id: 3, name: "Youth Fellowship", members: 234, posts: 24, image: "🙌", category: "Youth", privacy: "public", membersYouKnow: 7, newPosts: 5 },
-    { id: 4, name: "Prayer Warriors", members: 412, posts: 18, image: "🙏", category: "Prayer", privacy: "public", membersYouKnow: 12, newPosts: 1 },
-    { id: 5, name: "Tech in Church", members: 78, posts: 8, image: "💻", category: "Technology", privacy: "public", membersYouKnow: 2, newPosts: 3 },
-    { id: 6, name: "Choir Network", members: 95, posts: 15, image: "🎤", category: "Music", privacy: "private", membersYouKnow: 4, newPosts: 0 },
-  ];
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        // Fetch groups, posts, and people from the API
+        const [groupsData, postsData] = await Promise.all([
+          groupService.getGroups(),
+          eventService.getEvents(), // Using events as posts for now
+        ]);
 
-  const globalPosts = [
-    {
-      id: 1,
-      author: "Sarah Johnson",
-      time: "2 hours ago",
-      content: "Blessed to share that our youth outreach touched 50+ lives this weekend! God is faithful. 🙏",
-      likes: 45,
-      comments: 12,
-      group: "Youth Fellowship",
-      church: "Grace Community",
-      liked: false,
-      prayed: false
-    },
-    {
-      id: 2,
-      author: "Pastor Michael",
-      time: "5 hours ago",
-      content: "Prayer request: Please keep our missions team in your prayers as they travel to serve communities in need.",
-      likes: 89,
-      comments: 23,
-      group: "Prayer Warriors",
-      church: "Victory Church",
-      liked: true,
-      prayed: true
-    },
-    {
-      id: 3,
-      author: "David Williams",
-      time: "1 day ago",
-      content: "Just finished reading 'Mere Christianity' by C.S. Lewis. What a profound book! Highly recommend it to anyone looking to deepen their faith.",
-      likes: 67,
-      comments: 18,
-      group: "Book Study",
-      church: "Harvest Chapel",
-      liked: false,
-      prayed: false
-    },
-    {
-      id: 4,
-      author: "Maria Garcia",
-      time: "1 day ago",
-      content: "Our church food pantry served 200+ families this month. God's provision is amazing!",
-      likes: 120,
-      comments: 34,
-      group: "Outreach",
-      church: "City Light Fellowship",
-      liked: true,
-      prayed: true
-    },
-  ];
+        // Process the data to match expected format
+        setGroups(groupsData.map((g: any) => ({
+          ...g,
+          id: g._id,
+          membersYouKnow: 0, // This would come from actual API
+          newPosts: 0 // This would come from actual API
+        })));
+        
+        // Map posts
+        setGlobalPosts(postsData.map((p: any) => {
+          return {
+            id: p._id,
+            author: {
+              firstName: p.createdBy?.firstName || "Unknown",
+              lastName: p.createdBy?.lastName || "",
+            },
+            time: new Date(p.createdAt).toLocaleDateString(), // Format as needed
+            content: p.description || p.title || "No content",
+            likes: 0, // This would come from actual API
+            comments: 0, // This would come from actual API
+            group: p.group || "General",
+            church: p.church || "Unknown Church",
+            liked: false,
+            prayed: false
+          };
+        }));
+        
+        setLoading(false);
+      } catch (error: any) {
+        console.error("Failed to load community data:", error);
+        // Handle network error
+        if (error.code === 'ERR_NETWORK' || error.message.includes('Network Error')) {
+          console.warn("Backend may not be running. Showing limited functionality.");
+        }
+        setLoading(false);
+      }
+    };
 
-  const people = [
-    { id: 1, name: "James Wilson", role: "Worship Leader", church: "Grace Community", mutual: 3, connected: true },
-    { id: 2, name: "Maria Garcia", role: "Sunday School Teacher", church: "Victory Church", mutual: 1, connected: true },
-    { id: 3, name: "Thomas Chen", role: "IT Department", church: "City Light", mutual: 5, connected: false },
-    { id: 4, name: "Patricia Brown", role: "Deacon", church: "Grace Community", mutual: 2, connected: false },
-    { id: 5, name: "Ahmed Hassan", role: "Community Outreach", church: "Faith Center", mutual: 4, connected: true },
-    { id: 6, name: "Olivia Smith", role: "Youth Leader", church: "New Hope", mutual: 3, connected: false },
-  ];
+    fetchData();
+  }, []);
+
+  // Simulate receiving notifications
+  useEffect(() => {
+    const interval = setInterval(() => {
+      // In a real app, this would come from a WebSocket connection
+      if (Math.random() > 0.7) { // 30% chance of notification
+        setNotifications(prev => prev + 1);
+      }
+    }, 10000); // Every 10 seconds
+
+    return () => clearInterval(interval);
+  }, []);
 
   const handleLikePost = (postId: string) => {
     // Update the specific post in the state to toggle the liked status
