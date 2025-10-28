@@ -67,12 +67,12 @@ const App = () => (
 
           {/* Private Routes - Require authentication */}
           <Route path="/dashboard" element={
-            <ProtectedRoute pageType="dashboard">
+            <ProtectedRoute pageType="memberDashboard">
               <MemberDashboard />
             </ProtectedRoute>
           } />
           <Route path="/admin-dashboard" element={
-            <ProtectedRoute pageType="admin">
+            <ProtectedRoute pageType="adminDashboard">
               <AdminDashboard />
             </ProtectedRoute>
           } />

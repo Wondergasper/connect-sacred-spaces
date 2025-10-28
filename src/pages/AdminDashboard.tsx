@@ -22,11 +22,12 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useAuth } from '@/context/AuthContext';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { dashboardService } from '@/services/dashboardService';
 import { authService } from '@/services/authService';
 import { eventService } from '@/services/eventService';
 import { donationService } from '@/services/donationService';
+import { AdminSidebar, UserNav } from '@/components/Navigation';
 
 interface AdminDashboardStats {
   totalMembers: number;
@@ -42,12 +43,7 @@ const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState('overview');
   const navigate = useNavigate();
 
-  // Redirect non-admin users
-  useEffect(() => {
-    if (state.isAuthenticated && state.user && state.user.role !== 'admin' && state.user.role !== 'pastor') {
-      navigate('/dashboard');
-    }
-  }, [state.isAuthenticated, state.user, navigate]);
+
 
   useEffect(() => {
     const fetchDashboardStats = async () => {
@@ -94,42 +90,51 @@ const AdminDashboard = () => {
     { month: 'Jun', amount: 14200 },
   ];
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-slate-50 to-gray-100">
-      {/* Header with professional design */}
-      <header className="sticky top-0 z-50 w-full border-b bg-white shadow-sm">
-        <div className="container flex h-16 items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-700 to-indigo-800 flex items-center justify-center">
-              <Shield className="w-6 h-6 text-white" />
-            </div>
-            <div className="flex items-baseline gap-2">
-              <span className="font-bold text-xl text-gray-900">ChurchConnect</span>
-              <Badge className="bg-red-500 hover:bg-red-600 text-white font-bold">ADMINISTRATION</Badge>
-            </div>
-          </div>
-          
-          <div className="flex items-center gap-4">
-            {/* Admin-specific controls */}
-            <Button variant="outline" size="sm">
-              <Settings className="w-4 h-4 mr-2" />
-              Church Settings
-            </Button>
-            
-            <Button variant="ghost" size="icon">
-              <Bell className="w-5 h-5" />
-            </Button>
-            
-            <UserNav onLogout={() => {
-              authService.logout();
-              dispatch({ type: 'LOGOUT' });
-              navigate('/auth');
-            }} />
-          </div>
-        </div>
-      </header>
+  const [activePath, setActivePath] = useState('/admin-dashboard');
 
-      <main className="container py-8">
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-slate-50 to-gray-100 flex">
+      {/* Admin Sidebar */}
+      <div className="hidden md:block w-64 flex-shrink-0 border-r border-gray-200 bg-white">
+        <AdminSidebar activePath={activePath} onNavigate={(path) => setActivePath(path)} />
+      </div>
+      
+      {/* Main content area */}
+      <div className="flex-1 flex flex-col">
+        {/* Header with professional design */}
+        <header className="sticky top-0 z-50 w-full border-b bg-white shadow-sm">
+          <div className="flex h-16 items-center justify-between px-4 lg:px-6">
+            <div className="flex items-center gap-3 md:hidden"> {/* Mobile menu button for smaller screens */}
+              <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-700 to-indigo-800 flex items-center justify-center">
+                <Shield className="w-6 h-6 text-white" />
+              </div>
+              <div className="flex items-baseline gap-2">
+                <span className="font-bold text-xl text-gray-900">ChurchConnect</span>
+                <Badge className="bg-red-500 hover:bg-red-600 text-white font-bold">ADMIN</Badge>
+              </div>
+            </div>
+            
+            <div className="flex items-center gap-4 ml-auto">
+              {/* Admin-specific controls */}
+              <Button variant="outline" size="sm">
+                <Settings className="w-4 h-4 mr-2" />
+                Church Settings
+              </Button>
+              
+              <Button variant="ghost" size="icon">
+                <Bell className="w-5 h-5" />
+              </Button>
+              
+              <UserNav onLogout={() => {
+                authService.logout();
+                dispatch({ type: 'LOGOUT' });
+                navigate('/auth');
+              }} />
+            </div>
+          </div>
+        </header>
+
+        <main className="flex-1 py-8 px-4 lg:px-6">
         {/* Role Indicator Banner */}
         <div className="mb-6 p-3 rounded-xl bg-gradient-to-r from-red-600 to-orange-600 text-white shadow-lg">
           <div className="flex items-center justify-between">
@@ -233,37 +238,39 @@ const AdminDashboard = () => {
         </div>
 
         {/* Navigation Tabs */}
-        <div className="flex border-b mb-8">
-          <button
-            className={`pb-3 px-4 font-medium ${activeTab === 'overview' ? 'text-primary border-b-2 border-primary' : 'text-muted-foreground'}`}
-            onClick={() => setActiveTab('overview')}
-          >
-            Overview
-          </button>
-          <button
-            className={`pb-3 px-4 font-medium ${activeTab === 'members' ? 'text-primary border-b-2 border-primary' : 'text-muted-foreground'}`}
-            onClick={() => setActiveTab('members')}
-          >
-            Members
-          </button>
-          <button
-            className={`pb-3 px-4 font-medium ${activeTab === 'events' ? 'text-primary border-b-2 border-primary' : 'text-muted-foreground'}`}
-            onClick={() => setActiveTab('events')}
-          >
-            Events
-          </button>
-          <button
-            className={`pb-3 px-4 font-medium ${activeTab === 'donations' ? 'text-primary border-b-2 border-primary' : 'text-muted-foreground'}`}
-            onClick={() => setActiveTab('donations')}
-          >
-            Donations
-          </button>
-          <button
-            className={`pb-3 px-4 font-medium ${activeTab === 'reports' ? 'text-primary border-b-2 border-primary' : 'text-muted-foreground'}`}
-            onClick={() => setActiveTab('reports')}
-          >
-            Reports
-          </button>
+        <div className="border-b mb-8">
+          <nav className="flex space-x-6 overflow-x-auto">
+            <button
+              className={`pb-3 px-1 font-medium whitespace-nowrap ${activeTab === 'overview' ? 'text-primary border-b-2 border-primary' : 'text-muted-foreground hover:text-foreground'}`}
+              onClick={() => setActiveTab('overview')}
+            >
+              <span className="relative">Overview {activeTab === 'overview' && <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary rounded-t-full"></span>}</span>
+            </button>
+            <button
+              className={`pb-3 px-1 font-medium whitespace-nowrap ${activeTab === 'members' ? 'text-primary border-b-2 border-primary' : 'text-muted-foreground hover:text-foreground'}`}
+              onClick={() => setActiveTab('members')}
+            >
+              <span className="relative">Members {activeTab === 'members' && <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary rounded-t-full"></span>}</span>
+            </button>
+            <button
+              className={`pb-3 px-1 font-medium whitespace-nowrap ${activeTab === 'events' ? 'text-primary border-b-2 border-primary' : 'text-muted-foreground hover:text-foreground'}`}
+              onClick={() => setActiveTab('events')}
+            >
+              <span className="relative">Events {activeTab === 'events' && <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary rounded-t-full"></span>}</span>
+            </button>
+            <button
+              className={`pb-3 px-1 font-medium whitespace-nowrap ${activeTab === 'donations' ? 'text-primary border-b-2 border-primary' : 'text-muted-foreground hover:text-foreground'}`}
+              onClick={() => setActiveTab('donations')}
+            >
+              <span className="relative">Finances {activeTab === 'donations' && <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary rounded-t-full"></span>}</span>
+            </button>
+            <button
+              className={`pb-3 px-1 font-medium whitespace-nowrap ${activeTab === 'reports' ? 'text-primary border-b-2 border-primary' : 'text-muted-foreground hover:text-foreground'}`}
+              onClick={() => setActiveTab('reports')}
+            >
+              <span className="relative">Analytics {activeTab === 'reports' && <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary rounded-t-full"></span>}</span>
+            </button>
+          </nav>
         </div>
 
         {/* Content Area */}
@@ -533,6 +540,7 @@ const AdminDashboard = () => {
         )}
       </main>
     </div>
+  </div>
   );
 };
 

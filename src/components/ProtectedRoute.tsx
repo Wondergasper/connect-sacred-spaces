@@ -13,7 +13,7 @@ import {
 interface ProtectedRouteProps {
   children: ReactElement;
   requireAuth?: boolean;
-  pageType?: 'dashboard' | 'members' | 'events' | 'donations' | 'admin' | 'analytics' | 'departments';
+  pageType?: 'dashboard' | 'memberDashboard' | 'members' | 'events' | 'donations' | 'admin' | 'adminDashboard' | 'analytics' | 'departments';
 }
 
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
@@ -37,6 +37,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   // Check for specific page access requirements
   if (pageType && user) {
     let hasAccess = false;
+    let redirectPath = null;
 
     switch (pageType) {
       case 'members':
@@ -60,13 +61,32 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
       case 'dashboard':
         hasAccess = isAuthenticated;
         break;
+      case 'memberDashboard':
+        // Only allow non-admin users to access member dashboard
+        hasAccess = isAuthenticated && user.role !== 'admin' && user.role !== 'pastor';
+        // If admin tries to access member dashboard, redirect to admin dashboard
+        if (isAuthenticated && (user.role === 'admin' || user.role === 'pastor')) {
+          redirectPath = '/admin-dashboard';
+        }
+        break;
+      case 'adminDashboard':
+        // Only allow admin users to access admin dashboard
+        hasAccess = isAuthenticated && (user.role === 'admin' || user.role === 'pastor');
+        // If non-admin tries to access admin dashboard, redirect to member dashboard
+        if (isAuthenticated && user.role !== 'admin' && user.role !== 'pastor') {
+          redirectPath = '/dashboard';
+        }
+        break;
       default:
         hasAccess = isAuthenticated;
     }
 
     if (!hasAccess) {
       // If user doesn't have permission for specific page, redirect to dashboard
-      return <Navigate to="/dashboard" replace />;
+      return <Navigate to={redirectPath || "/dashboard"} replace />;
+    } else if (redirectPath) {
+      // If there's a redirect path based on role, redirect to the appropriate dashboard
+      return <Navigate to={redirectPath} replace />;
     }
   }
 

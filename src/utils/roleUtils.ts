@@ -115,3 +115,14 @@ export const hasPermissionForAction = (user: User | null, action: string): boole
       return false;
   }
 };
+
+export const getDashboardRedirectPath = (user: User | null): string => {
+  if (!user) return '/auth';
+  
+  // If user is admin or pastor, redirect to admin dashboard
+  if (user.role === 'admin' || user.role === 'pastor') {
+    return '/admin-dashboard';
+  }
+  // Otherwise, redirect to member dashboard
+  return '/dashboard';
+};
